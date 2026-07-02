@@ -85,8 +85,34 @@
   }
   .panel.active{display:block;}
 
-  .panel h2{margin-top:0;font-size:20px;}
+  .panel h2{margin-top:0;font-size:20px;display:flex;align-items:center;gap:10px;}
   .panel .desc{color:#666;font-size:13.5px;margin-top:-6px;margin-bottom:24px;line-height:1.5;}
+  .panel .desc,.panel .note,.panel .steps{display:none;}
+  .panel.help-open .desc,.panel.help-open .note,.panel.help-open .steps{display:block;}
+
+  .helper-btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border:2px solid var(--linha);border-radius:50%;
+    background:var(--branco);cursor:pointer;color:var(--grafite-claro);
+    transition:all .15s ease;flex-shrink:0;padding:0;
+  }
+  .helper-btn:hover{border-color:var(--grafite-claro);color:var(--grafite);background:#f9f8f5;}
+  .helper-btn.active{border-color:var(--vermelho);color:var(--vermelho);}
+  .helper-btn svg{display:block;}
+
+  .tipo-lance{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+  .tipo-opt{
+    flex:1;min-width:120px;padding:10px 12px;
+    border:2px solid var(--linha);border-radius:8px;
+    cursor:pointer;text-align:center;
+    transition:all .15s ease;background:var(--branco);
+  }
+  .tipo-opt:hover{border-color:var(--grafite-claro);}
+  .tipo-opt.active{border-color:var(--vermelho);background:#FFF5F5;}
+  .tipo-opt input{display:none;}
+  .tipo-opt .tipo-label{display:block;font-size:13px;font-weight:700;color:var(--grafite);}
+  .tipo-opt .tipo-sub{display:block;font-size:10.5px;color:#999;margin-top:2px;}
+  .tipo-opt.active .tipo-label{color:var(--vermelho);}
 
   .grid{
     display:grid;
@@ -258,7 +284,7 @@
 
   <!-- PAINEL 1: PARCELA -->
   <div class="panel active" id="panel-parcela">
-    <h2>Cálculo da Parcela</h2>
+    <h2>Cálculo da Parcela<button class="helper-btn" title="Mostrar explicações"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button></h2>
     <p class="desc">Informe o valor do bem e o prazo do grupo. As taxas já vêm preenchidas com os percentuais padrão Valtra, mas podem ser ajustadas se o grupo for diferente.</p>
     <div class="grid">
       <div>
@@ -309,7 +335,7 @@
 
   <!-- PAINEL 2: LANCE -->
   <div class="panel" id="panel-lance">
-    <h2>Percentual de Lance</h2>
+    <h2>Percentual de Lance<button class="helper-btn" title="Mostrar explicações"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button></h2>
     <p class="desc">Use para saber qual percentual o cliente vai oferecer de lance, com base no valor (R$) que ele pretende ofertar — ou o caminho inverso, partindo de um percentual desejado.</p>
     <div class="grid">
       <div>
@@ -326,6 +352,10 @@
           <input type="text" id="l_fundoReserva" inputmode="decimal" value="1">
         </div>
         <div class="field">
+          <label>Percentual de lance (%)</label>
+          <input type="text" id="l_pctLance" inputmode="decimal" value="">
+        </div>
+        <div class="field">
           <label>Valor do lance ofertado (R$)</label>
           <input type="text" id="l_valorLance" inputmode="decimal" value="136.000,00">
         </div>
@@ -339,10 +369,34 @@
     <div class="note">% de Lance = Valor do lance ÷ Valor de Categoria (bem + taxas) × 100. O percentual obtido é amortizado em ordem inversa do plano (do final para o início).</div>
   </div>
 
-  <!-- PAINEL 3: LANCE EMBUTIDO -->
+  <!-- PAINEL 3: LANCE EMBUTIDO / FIXO / LIVRE -->
   <div class="panel" id="panel-embutido">
-    <h2>Lance Embutido (Coeficiente)</h2>
+    <h2>Lance Embutido (Coeficiente)<button class="helper-btn" title="Mostrar explicações"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button></h2>
     <p class="desc">No lance embutido, o cliente usa parte do próprio crédito como lance. Como incidem taxas sobre o crédito, o valor líquido recebido é menor. Informe o percentual de lance embutido desejado e o valor líquido que o cliente quer receber, para descobrir o crédito bruto necessário.</p>
+
+    <div class="tipo-lance">
+      <label class="tipo-opt active" data-tipo="embutido">
+        <input type="radio" name="e_tipo" value="embutido" checked>
+        <span class="tipo-label">Lance Embutido</span>
+        <span class="tipo-sub">máx. 20% do crédito</span>
+      </label>
+      <label class="tipo-opt" data-tipo="fixo25">
+        <input type="radio" name="e_tipo" value="fixo25">
+        <span class="tipo-label">Lance Fixo 25%</span>
+        <span class="tipo-sub">embute 20% + 5% em dinheiro</span>
+      </label>
+      <label class="tipo-opt" data-tipo="fixo35">
+        <input type="radio" name="e_tipo" value="fixo35">
+        <span class="tipo-label">Lance Fixo 35%</span>
+        <span class="tipo-sub">embute 20% + 15% em dinheiro</span>
+      </label>
+      <label class="tipo-opt" data-tipo="livre">
+        <input type="radio" name="e_tipo" value="livre">
+        <span class="tipo-label">Lance Livre</span>
+        <span class="tipo-sub">digite o % total</span>
+      </label>
+    </div>
+
     <div class="grid">
       <div>
         <div class="field">
@@ -354,11 +408,15 @@
           <input type="text" id="e_fundoReserva" inputmode="decimal" value="1">
         </div>
         <div class="field">
-          <label>% de Lance Embutido</label>
+          <label>% de Lance Embutido <span class="hint">máx. 20%</span></label>
           <input type="text" id="e_pctEmbutido" inputmode="decimal" value="20">
         </div>
+        <div class="field" id="e_pctTotalField" style="display:none;">
+          <label>% Total do Lance</label>
+          <input type="text" id="e_pctTotal" inputmode="decimal" value="">
+        </div>
         <div class="field">
-          <label>Valor líquido desejado pelo cliente (R$) <span class="hint">opcional — para achar o crédito bruto</span></label>
+          <label>Valor líquido desejado (R$) <span class="hint">para achar o crédito bruto</span></label>
           <input type="text" id="e_valorLiquido" inputmode="decimal" value="310.000,00">
         </div>
       </div>
@@ -369,9 +427,14 @@
         <div class="res-row"><span class="lbl">% líquido recebido</span><span class="val" id="r3_pctLiquido">—</span></div>
         <div class="res-row highlight"><span class="lbl">Coeficiente</span><span class="val" id="r3_coeficiente">—</span></div>
         <div class="res-row highlight"><span class="lbl">Crédito bruto necessário</span><span class="val" id="r3_creditoBruto">—</span></div>
+        <div id="r3_dinheiroBlock" style="display:none;">
+          <div class="res-row"><span class="lbl">Lance total</span><span class="val" id="r3_lanceTotal">—</span></div>
+          <div class="res-row"><span class="lbl">Valor embutido (do crédito)</span><span class="val" id="r3_valorEmbutido">—</span></div>
+          <div class="res-row highlight"><span class="lbl">Valor em dinheiro</span><span class="val" id="r3_valorDinheiro">—</span></div>
+        </div>
       </div>
     </div>
-    <div class="note">Custo total = 100% + Taxa Adm + Fundo Reserva. % perdido = Custo total × % Lance Embutido. % líquido = 100% − % perdido. Coeficiente = 100% ÷ % líquido. Crédito bruto = Valor líquido desejado × Coeficiente.</div>
+    <div class="note">Custo total = 100% + Taxa Adm + Fundo Reserva. % perdido = Custo total × % Lance Embutido. % líquido = 100% − % perdido. Coeficiente = 100% ÷ % líquido. Crédito bruto = Valor líquido × Coeficiente.</div>
   </div>
 
   <footer class="foot">Ferramenta interna de apoio — Consórcio Valtra (Lei 11.795/2008). Valores de referência; confirme sempre com a tabela vigente da administradora.
@@ -386,16 +449,38 @@ function parseNum(str){
   return parseFloat(str);
 }
 function fmtBRL(n){
-  if(isNaN(n)) return '—';
+  if(isNaN(n)) return '\u2014';
   return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 }
 function fmtPct(n, casas){
-  if(isNaN(n)) return '—';
+  if(isNaN(n)) return '\u2014';
   return n.toLocaleString('pt-BR',{minimumFractionDigits:casas||4,maximumFractionDigits:casas||4})+'%';
 }
 function fmtNum(n, casas){
-  if(isNaN(n)) return '—';
+  if(isNaN(n)) return '\u2014';
   return n.toLocaleString('pt-BR',{minimumFractionDigits:casas||4,maximumFractionDigits:casas||4});
+}
+
+function maskCurrency(el){
+  let raw = el.value.replace(/\D/g, '');
+  if(raw.length === 0){ el.value = ''; return; }
+  if(raw.length > 14) raw = raw.slice(0, 14);
+  let formatted;
+  if(raw.length <= 2){
+    formatted = '0,' + raw.padStart(2, '0');
+  } else {
+    const dec = raw.slice(-2);
+    const int = raw.slice(0, -2).replace(/^0+/, '') || '0';
+    formatted = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + dec;
+  }
+  el.value = formatted;
+}
+function setMaskedValue(el, num){
+  if(isNaN(num)) return;
+  const intPart = Math.floor(Math.abs(num)).toString();
+  const decPart = Math.round(Math.abs(num % 1) * 100).toString().padStart(2, '0');
+  const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + decPart;
+  el.value = formatted;
 }
 
 // ---- TABS ----
@@ -430,14 +515,18 @@ function calcParcela(){
   document.getElementById('r_parcelaComSeguro').textContent = fmtBRL(parcelaComSeguro);
 
   document.getElementById('p_steps').innerHTML =
-    `<b>Memória de cálculo:</b><br>
-    Valor de Categoria = ${fmtBRL(valorBem)} × (1 + ${taxaAdm}% + ${fundoReserva}%) = ${fmtBRL(valorCategoria)}<br>
-    % Ideal = 100% ÷ ${isNaN(prazo)?'-':prazo} meses = ${fmtPct(pctIdeal,4)}<br>
-    Parcela sem seguro = ${fmtPct(pctIdeal,4)} × ${fmtBRL(valorCategoria)} = ${fmtBRL(parcelaSemSeguro)}<br>
-    Seguro = ${seguro}% × ${fmtBRL(valorCategoria)} = ${fmtBRL(valorSeguro)}<br>
+    `<b>Mem\u00f3ria de c\u00e1lculo:</b><br>
+    Valor de Categoria = ${fmtBRL(valorBem)} \u00d7 (1 + ${taxaAdm}% + ${fundoReserva}%) = ${fmtBRL(valorCategoria)}<br>
+    % Ideal = 100% \u00f7 ${isNaN(prazo)?'-':prazo} meses = ${fmtPct(pctIdeal,4)}<br>
+    Parcela sem seguro = ${fmtPct(pctIdeal,4)} \u00d7 ${fmtBRL(valorCategoria)} = ${fmtBRL(parcelaSemSeguro)}<br>
+    Seguro = ${seguro}% \u00d7 ${fmtBRL(valorCategoria)} = ${fmtBRL(valorSeguro)}<br>
     Parcela com seguro = ${fmtBRL(parcelaSemSeguro)} + ${fmtBRL(valorSeguro)} = ${fmtBRL(parcelaComSeguro)}`;
 }
-['p_valorBem','p_prazo','p_taxaAdm','p_fundoReserva','p_seguro'].forEach(id=>{
+document.getElementById('p_valorBem').addEventListener('input', function(){
+  maskCurrency(this);
+  calcParcela();
+});
+['p_prazo','p_taxaAdm','p_fundoReserva','p_seguro'].forEach(id=>{
   document.getElementById(id).addEventListener('input', calcParcela);
 });
 
@@ -451,44 +540,158 @@ toggleBtn.addEventListener('click', (e)=>{
 });
 
 // ---- PAINEL 2: LANCE ----
+let lanceSource = 'valor';
+
 function calcLance(){
   const valorBem = parseNum(document.getElementById('l_valorBem').value);
   const taxaAdm = parseNum(document.getElementById('l_taxaAdm').value);
   const fundoReserva = parseNum(document.getElementById('l_fundoReserva').value);
-  const valorLance = parseNum(document.getElementById('l_valorLance').value);
 
   const fatorTaxas = 1 + (taxaAdm/100) + (fundoReserva/100);
   const valorCategoria = valorBem * fatorTaxas;
-  const pctLance = (valorLance/valorCategoria)*100;
+
+  let valorLance, pctLance;
+
+  if(lanceSource === 'pct'){
+    pctLance = parseNum(document.getElementById('l_pctLance').value);
+    if(!isNaN(pctLance)){
+      valorLance = (pctLance/100) * valorCategoria;
+      setMaskedValue(document.getElementById('l_valorLance'), valorLance);
+    } else {
+      valorLance = parseNum(document.getElementById('l_valorLance').value);
+      pctLance = (valorLance/valorCategoria)*100;
+      if(!isNaN(pctLance)){
+        document.getElementById('l_pctLance').value = fmtNum(pctLance,4);
+      }
+    }
+  } else {
+    valorLance = parseNum(document.getElementById('l_valorLance').value);
+    pctLance = (valorLance/valorCategoria)*100;
+    if(!isNaN(pctLance)){
+      document.getElementById('l_pctLance').value = fmtNum(pctLance,4);
+    }
+  }
 
   document.getElementById('r2_valorCategoria').textContent = fmtBRL(valorCategoria);
   document.getElementById('r2_pctLance').textContent = fmtPct(pctLance,4);
 }
-['l_valorBem','l_taxaAdm','l_fundoReserva','l_valorLance'].forEach(id=>{
+document.getElementById('l_valorBem').addEventListener('input', function(){
+  maskCurrency(this);
+  if(document.getElementById('l_valorLance').value === ''){
+    lanceSource = 'pct';
+  }
+  calcLance();
+});
+['l_taxaAdm','l_fundoReserva'].forEach(id=>{
   document.getElementById(id).addEventListener('input', calcLance);
 });
+document.getElementById('l_valorLance').addEventListener('input', function(){
+  maskCurrency(this);
+  lanceSource = 'valor';
+  calcLance();
+});
+document.getElementById('l_pctLance').addEventListener('input', function(){
+  lanceSource = 'pct';
+  calcLance();
+});
 
-// ---- PAINEL 3: LANCE EMBUTIDO ----
+// ---- PAINEL 3: LANCE EMBUTIDO / FIXO / LIVRE ----
 function calcEmbutido(){
+  const tipo = document.querySelector('input[name="e_tipo"]:checked').value;
   const taxaAdm = parseNum(document.getElementById('e_taxaAdm').value);
   const fundoReserva = parseNum(document.getElementById('e_fundoReserva').value);
-  const pctEmbutido = parseNum(document.getElementById('e_pctEmbutido').value);
   const valorLiquido = parseNum(document.getElementById('e_valorLiquido').value);
 
+  let pctEmbutido, pctLanceTotal;
+
+  if(tipo === 'embutido'){
+    const emField = document.getElementById('e_pctEmbutido');
+    pctEmbutido = parseNum(emField.value);
+    if(pctEmbutido > 20){ pctEmbutido = 20; emField.value = '20,00'; }
+    pctLanceTotal = pctEmbutido;
+  } else if(tipo === 'fixo25'){
+    pctEmbutido = 20;
+    pctLanceTotal = 25;
+  } else if(tipo === 'fixo35'){
+    pctEmbutido = 20;
+    pctLanceTotal = 35;
+  } else {
+    const pctTotal = parseNum(document.getElementById('e_pctTotal').value);
+    pctEmbutido = Math.min(pctTotal || 0, 20);
+    pctLanceTotal = pctTotal;
+  }
+
+  const pctCash = pctLanceTotal - pctEmbutido;
   const custoTotal = 100 + taxaAdm + fundoReserva;
   const pctPerdido = (custoTotal/100) * pctEmbutido;
   const pctLiquido = 100 - pctPerdido;
   const coeficiente = 100/pctLiquido;
   const creditoBruto = valorLiquido * coeficiente;
+  const valorEmbutido = (pctEmbutido/100) * creditoBruto;
+  const valorDinheiro = (pctCash/100) * creditoBruto;
 
   document.getElementById('r3_custoTotal').textContent = fmtPct(custoTotal,2);
   document.getElementById('r3_pctPerdido').textContent = fmtPct(pctPerdido,4);
   document.getElementById('r3_pctLiquido').textContent = fmtPct(pctLiquido,4);
   document.getElementById('r3_coeficiente').textContent = fmtNum(coeficiente,4);
   document.getElementById('r3_creditoBruto').textContent = fmtBRL(creditoBruto);
+
+  const dinheiroBlock = document.getElementById('r3_dinheiroBlock');
+  if(pctCash > 0 && !isNaN(creditoBruto)){
+    dinheiroBlock.style.display = 'block';
+    document.getElementById('r3_lanceTotal').textContent = fmtPct(pctLanceTotal,2);
+    document.getElementById('r3_valorEmbutido').textContent = fmtBRL(valorEmbutido);
+    document.getElementById('r3_valorDinheiro').textContent = fmtBRL(valorDinheiro);
+  } else {
+    dinheiroBlock.style.display = 'none';
+  }
+
+  if(tipo !== 'embutido' && !isNaN(pctEmbutido)){
+    document.getElementById('e_pctEmbutido').value = fmtNum(pctEmbutido,2);
+  }
 }
-['e_taxaAdm','e_fundoReserva','e_pctEmbutido','e_valorLiquido'].forEach(id=>{
+
+document.getElementById('e_valorLiquido').addEventListener('input', function(){
+  maskCurrency(this);
+  calcEmbutido();
+});
+['e_taxaAdm','e_fundoReserva'].forEach(id=>{
   document.getElementById(id).addEventListener('input', calcEmbutido);
+});
+document.getElementById('e_pctEmbutido').addEventListener('input', calcEmbutido);
+document.getElementById('e_pctTotal').addEventListener('input', calcEmbutido);
+
+document.querySelectorAll('input[name="e_tipo"]').forEach(radio=>{
+  radio.addEventListener('change', function(){
+    document.querySelectorAll('.tipo-opt').forEach(o=>o.classList.remove('active'));
+    this.closest('.tipo-opt').classList.add('active');
+    const tipo = this.value;
+    const emField = document.getElementById('e_pctEmbutido');
+    const totalField = document.getElementById('e_pctTotalField');
+    if(tipo === 'embutido'){
+      emField.disabled = false;
+      totalField.style.display = 'none';
+    } else if(tipo === 'fixo25'){
+      emField.value = '20,00'; emField.disabled = true;
+      totalField.style.display = 'none';
+    } else if(tipo === 'fixo35'){
+      emField.value = '20,00'; emField.disabled = true;
+      totalField.style.display = 'none';
+    } else {
+      emField.value = ''; emField.disabled = true;
+      totalField.style.display = 'block';
+      document.getElementById('e_pctTotal').focus();
+    }
+    calcEmbutido();
+  });
+});
+
+// ---- HELP BUTTONS ----
+document.querySelectorAll('.helper-btn').forEach(btn=>{
+  btn.addEventListener('click', function(){
+    this.closest('.panel').classList.toggle('help-open');
+    this.classList.toggle('active');
+  });
 });
 
 calcParcela();
