@@ -1,716 +1,1510 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#1F2421">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<title>Calculadora Consórcio Valtra</title>
-<style>
-  :root{
-    --verde-valtra:#D52B1E; /* aceso, ajustado abaixo */
-    --vermelho:#C8102E;
-    --amarelo:#FFB81C;
-    --grafite:#1F2421;
-    --grafite-claro:#3A413C;
-    --creme:#F6F4EF;
-    --branco:#FFFFFF;
-    --linha:#DCD7CB;
-    --verde-trator:#3E6B35;
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{
-    margin:0;
-    background:var(--creme);
-    color:var(--grafite);
-    font-family:'Segoe UI',Arial,sans-serif;
-    padding:0 0 60px 0;
-  }
-  header{
-    background:var(--grafite);
-    color:var(--branco);
-    padding:28px 32px 24px 32px;
-    border-bottom:6px solid var(--amarelo);
-  }
-  header h1{
-    margin:0 0 4px 0;
-    font-size:26px;
-    letter-spacing:0.5px;
-  }
-  header h1 span{color:var(--amarelo);}
-  header p{margin:0;color:#C9C9C2;font-size:14px;}
-
-  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
-
-  .tabs{
-    display:flex;
-    gap:4px;
-    margin:28px 0 0 0;
-    border-bottom:2px solid var(--linha);
-  }
-  .tab-btn{
-    flex:1;
-    background:var(--branco);
-    border:2px solid var(--linha);
-    border-bottom:none;
-    border-radius:10px 10px 0 0;
-    padding:14px 10px;
-    font-size:14px;
-    font-weight:600;
-    color:var(--grafite-claro);
-    cursor:pointer;
-    text-align:center;
-    transition:all .15s ease;
-  }
-  .tab-btn .num{
-    display:block;
-    font-size:11px;
-    font-weight:700;
-    color:var(--vermelho);
-    letter-spacing:1px;
-    margin-bottom:2px;
-  }
-  .tab-btn.active{
-    background:var(--grafite);
-    color:var(--branco);
-    border-color:var(--grafite);
-  }
-  .tab-btn.active .num{color:var(--amarelo);}
-
-  .panel{
-    background:var(--branco);
-    border:2px solid var(--grafite);
-    border-top:none;
-    border-radius:0 0 14px 14px;
-    padding:32px;
-    display:none;
-  }
-  .panel.active{display:block;}
-
-  .panel h2{margin-top:0;font-size:20px;display:flex;align-items:center;gap:10px;}
-  .panel .desc{color:#666;font-size:13.5px;margin-top:-6px;margin-bottom:24px;line-height:1.5;}
-  .panel .desc,.panel .note,.panel .steps{display:none;}
-  .panel.help-open .desc,.panel.help-open .note,.panel.help-open .steps{display:block;}
-
-  .helper-btn{
-    display:inline-flex;align-items:center;justify-content:center;
-    width:28px;height:28px;border:2px solid var(--linha);border-radius:50%;
-    background:var(--branco);cursor:pointer;color:var(--grafite-claro);
-    transition:all .15s ease;flex-shrink:0;padding:0;
-  }
-  .helper-btn:hover{border-color:var(--grafite-claro);color:var(--grafite);background:#f9f8f5;}
-  .helper-btn.active{border-color:var(--vermelho);color:var(--vermelho);}
-  .helper-btn svg{display:block;}
-
-  .tipo-lance{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
-  .tipo-opt{
-    flex:1;min-width:120px;padding:10px 12px;
-    border:2px solid var(--linha);border-radius:8px;
-    cursor:pointer;text-align:center;
-    transition:all .15s ease;background:var(--branco);
-  }
-  .tipo-opt:hover{border-color:var(--grafite-claro);}
-  .tipo-opt.active{border-color:var(--vermelho);background:#FFF5F5;}
-  .tipo-opt input{display:none;}
-  .tipo-opt .tipo-label{display:block;font-size:13px;font-weight:700;color:var(--grafite);}
-  .tipo-opt .tipo-sub{display:block;font-size:10.5px;color:#999;margin-top:2px;}
-  .tipo-opt.active .tipo-label{color:var(--vermelho);}
-
-  .grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:32px;
-  }
-  @media(max-width:760px){
-    .grid{grid-template-columns:1fr;gap:18px;}
-    .grid > .results{order:-1;}
-  }
-
-  .field{margin-bottom:16px;}
-  .field label{
-    display:block;
-    font-size:12.5px;
-    font-weight:700;
-    text-transform:uppercase;
-    letter-spacing:0.4px;
-    color:var(--grafite-claro);
-    margin-bottom:6px;
-  }
-  .field .hint{font-weight:400;text-transform:none;color:#999;font-size:11.5px;}
-  .field input{
-    width:100%;
-    padding:11px 12px;
-    border:2px solid var(--linha);
-    border-radius:8px;
-    font-size:15px;
-    font-family:inherit;
-    background:var(--creme);
-    color:var(--grafite);
-  }
-  .field input:focus{outline:none;border-color:var(--vermelho);background:var(--branco);}
-
-  .results{
-    background:var(--grafite);
-    border-radius:12px;
-    padding:22px 24px;
-    color:var(--branco);
-  }
-  .results h3{
-    margin:0 0 14px 0;
-    font-size:12.5px;
-    text-transform:uppercase;
-    letter-spacing:1px;
-    color:var(--amarelo);
-  }
-  .res-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    padding:10px 0;
-    border-bottom:1px solid #3A413C;
-  }
-  .res-row:last-child{border-bottom:none;}
-  .res-row .lbl{font-size:13px;color:#C9C9C2;}
-  .res-row .val{font-size:17px;font-weight:700;}
-  .res-row.highlight .val{color:var(--amarelo);font-size:22px;}
-  .res-row.highlight{padding-top:14px;}
-
-  .note{
-    margin-top:18px;
-    font-size:12px;
-    color:#888;
-    line-height:1.5;
-    background:#FBF8F1;
-    border-left:3px solid var(--amarelo);
-    padding:10px 12px;
-    border-radius:0 6px 6px 0;
-  }
-
-  .steps{
-    margin-top:16px;
-    font-size:12px;
-    color:#777;
-    line-height:1.7;
-  }
-  .steps b{color:var(--grafite);}
-
-  .seguro-toggle-btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    margin-top:14px;
-    width:36px;
-    height:36px;
-    border:2px solid var(--linha);
-    border-radius:8px;
-    background:var(--branco);
-    cursor:pointer;
-    color:var(--grafite-claro);
-    transition:all .15s ease;
-  }
-  .seguro-toggle-btn:hover{
-    border-color:var(--grafite-claro);
-    color:var(--grafite);
-    background:#f9f8f5;
-  }
-  .seguro-toggle-btn .eye-off{display:none;}
-  .seguro-toggle-btn.open .eye-on{display:none;}
-  .seguro-toggle-btn.open .eye-off{display:block;}
-  .tab-btn:active{transform:scale(0.97);}
-  .seguro-toggle-btn:active{transform:scale(0.93);}
-
-  .hidden-block{
-    max-height:0;
-    overflow:hidden;
-    opacity:0;
-    transition:max-height .25s ease, opacity .2s ease;
-  }
-  .hidden-block.open{
-    max-height:200px;
-    opacity:1;
-    margin-top:6px;
-  }
-
-
-  footer.foot{
-    text-align:center;
-    margin-top:30px;
-    font-size:11.5px;
-    color:#999;
-  }
-
-  @media(max-width:480px){
-    header{padding:18px 16px 14px;}
-    header h1{font-size:19px;}
-    header p{font-size:11.5px;}
-    .wrap{padding:0 14px;}
-    .panel{padding:18px 14px;}
-    .panel h2{font-size:17px;}
-    .panel .desc{font-size:12px;margin-bottom:14px;}
-    .field{margin-bottom:12px;}
-    .field label{font-size:11px;letter-spacing:0.3px;}
-    .field .hint{font-size:10.5px;}
-    .field input{padding:13px 12px;font-size:16px;}
-    .results{padding:16px;border-radius:10px;}
-    .results h3{font-size:11px;margin-bottom:10px;letter-spacing:0.8px;}
-    .res-row{padding:8px 0;}
-    .res-row .lbl{font-size:11.5px;}
-    .res-row .val{font-size:15px;}
-    .res-row.highlight .val{font-size:18px;}
-    .res-row.highlight{padding-top:10px;}
-    .note{font-size:11px;padding:8px 10px;margin-top:14px;}
-    .steps{font-size:11px;line-height:1.5;margin-top:12px;}
-    .seguro-toggle-btn{width:44px;height:44px;margin-top:12px;}
-    .seguro-toggle-btn svg{width:22px;height:22px;}
-    footer.foot{font-size:10px;padding:0 10px;margin-top:18px;}
-  }
-  @media(max-width:400px){
-    .tab-btn{font-size:11px;padding:10px 4px;}
-    .tab-btn .num{font-size:9px;}
-  }
-</style>
-</head>
-<body>
-
-<header>
-  <h1>Calculadora de Consórcio <span>Valtra</span></h1>
-  <p>Ferramenta de apoio comercial — parcelas, lance e lance embutido</p>
-</header>
-
-<div class="wrap">
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="parcela"><span class="num">01</span>Valor da Parcela</button>
-    <button class="tab-btn" data-tab="lance"><span class="num">02</span>% de Lance</button>
-    <button class="tab-btn" data-tab="embutido"><span class="num">03</span>Lance Embutido</button>
-  </div>
-
-  <!-- PAINEL 1: PARCELA -->
-  <div class="panel active" id="panel-parcela">
-    <h2>Cálculo da Parcela<button class="helper-btn" title="Mostrar explicações"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button></h2>
-    <p class="desc">Informe o valor do bem e o prazo do grupo. As taxas já vêm preenchidas com os percentuais padrão Valtra, mas podem ser ajustadas se o grupo for diferente.</p>
-    <div class="grid">
-      <div>
-        <div class="field">
-          <label>Valor do bem (R$)</label>
-          <input type="text" id="p_valorBem" inputmode="decimal" value="310.000,00">
-        </div>
-        <div class="field">
-          <label>Prazo do grupo <span class="hint">(meses)</span></label>
-          <input type="text" id="p_prazo" inputmode="decimal" value="150">
-        </div>
-        <div class="field">
-          <label>Taxa de Administração (%)</label>
-          <input type="text" id="p_taxaAdm" inputmode="decimal" value="14">
-        </div>
-        <div class="field">
-          <label>Fundo de Reserva (%)</label>
-          <input type="text" id="p_fundoReserva" inputmode="decimal" value="1">
-        </div>
-        <div class="field">
-          <label>Seguro de Vida (%) <span class="hint">por mês, sobre valor de categoria</span></label>
-          <input type="text" id="p_seguro" inputmode="decimal" value="0,050">
-        </div>
-      </div>
-      <div class="results">
-        <h3>Resultado</h3>
-        <div class="res-row"><span class="lbl">Valor de Categoria (bem + taxas)</span><span class="val" id="r_valorCategoria">—</span></div>
-        <div class="res-row"><span class="lbl">% Ideal de amortização</span><span class="val" id="r_pctIdeal">—</span></div>
-        <div class="res-row highlight"><span class="lbl">Parcela com seguro</span><span class="val" id="r_parcelaComSeguro">—</span></div>
-
-        <div id="blocoSemSeguro" class="hidden-block">
-          <div class="res-row"><span class="lbl">Valor do seguro (mensal)</span><span class="val" id="r_valorSeguro">—</span></div>
-          <div class="res-row"><span class="lbl">Parcela sem seguro</span><span class="val" id="r_parcelaSemSeguro">—</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="steps" id="p_steps"></div>
-    <div class="note">Valor de Categoria = Valor do bem × (1 + Taxa Adm + Fundo Reserva). % Ideal = 100% ÷ prazo. Parcela = % Ideal × Valor de Categoria. Seguro = % Seguro × Valor de Categoria.</div>
-    <button id="toggleSemSeguro" class="seguro-toggle-btn" title="Exibir valores sem seguro">
-      <svg class="eye-icon eye-on" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-      </svg>
-      <svg class="eye-icon eye-off" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-        <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- PAINEL 2: LANCE -->
-  <div class="panel" id="panel-lance">
-    <h2>Percentual de Lance<button class="helper-btn" title="Mostrar explicações"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button></h2>
-    <p class="desc">Use para saber qual percentual o cliente vai oferecer de lance, com base no valor (R$) que ele pretende ofertar — ou o caminho inverso, partindo de um percentual desejado.</p>
-    <div class="grid">
-      <div>
-        <div class="field">
-          <label>Valor do bem (R$)</label>
-          <input type="text" id="l_valorBem" inputmode="decimal" value="310.000,00">
-        </div>
-        <div class="field">
-          <label>Taxa de Administração (%)</label>
-          <input type="text" id="l_taxaAdm" inputmode="decimal" value="14">
-        </div>
-        <div class="field">
-          <label>Fundo de Reserva (%)</label>
-          <input type="text" id="l_fundoReserva" inputmode="decimal" value="1">
-        </div>
-        <div class="field">
-          <label>Percentual de lance (%)</label>
-          <input type="text" id="l_pctLance" inputmode="decimal" value="">
-        </div>
-        <div class="field">
-          <label>Valor do lance ofertado (R$)</label>
-          <input type="text" id="l_valorLance" inputmode="decimal" value="136.000,00">
-        </div>
-      </div>
-      <div class="results">
-        <h3>Resultado</h3>
-        <div class="res-row"><span class="lbl">Valor de Categoria (bem + taxas)</span><span class="val" id="r2_valorCategoria">—</span></div>
-        <div class="res-row highlight"><span class="lbl">Percentual de lance</span><span class="val" id="r2_pctLance">—</span></div>
-      </div>
-    </div>
-    <div class="note">% de Lance = Valor do lance ÷ Valor de Categoria (bem + taxas) × 100. O percentual obtido é amortizado em ordem inversa do plano (do final para o início).</div>
-  </div>
-
-  <!-- PAINEL 3: LANCE EMBUTIDO / FIXO / LIVRE -->
-  <div class="panel" id="panel-embutido">
-    <h2>Lance Embutido (Coeficiente)<button class="helper-btn" title="Mostrar explicações"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button></h2>
-    <p class="desc">No lance embutido, o cliente usa parte do próprio crédito como lance. Como incidem taxas sobre o crédito, o valor líquido recebido é menor. Informe o percentual de lance embutido desejado e o valor líquido que o cliente quer receber, para descobrir o crédito bruto necessário.</p>
-
-    <div class="tipo-lance">
-      <label class="tipo-opt active" data-tipo="embutido">
-        <input type="radio" name="e_tipo" value="embutido" checked>
-        <span class="tipo-label">Lance Embutido</span>
-        <span class="tipo-sub">máx. 20% do crédito</span>
-      </label>
-      <label class="tipo-opt" data-tipo="fixo25">
-        <input type="radio" name="e_tipo" value="fixo25">
-        <span class="tipo-label">Lance Fixo 25%</span>
-        <span class="tipo-sub">embute 20% + 5% em dinheiro</span>
-      </label>
-      <label class="tipo-opt" data-tipo="fixo35">
-        <input type="radio" name="e_tipo" value="fixo35">
-        <span class="tipo-label">Lance Fixo 35%</span>
-        <span class="tipo-sub">embute 20% + 15% em dinheiro</span>
-      </label>
-      <label class="tipo-opt" data-tipo="livre">
-        <input type="radio" name="e_tipo" value="livre">
-        <span class="tipo-label">Lance Livre</span>
-        <span class="tipo-sub">digite o % total</span>
-      </label>
-    </div>
-
-    <div class="grid">
-      <div>
-        <div class="field">
-          <label>Taxa de Administração (%)</label>
-          <input type="text" id="e_taxaAdm" inputmode="decimal" value="14">
-        </div>
-        <div class="field">
-          <label>Fundo de Reserva (%)</label>
-          <input type="text" id="e_fundoReserva" inputmode="decimal" value="1">
-        </div>
-        <div class="field">
-          <label>% de Lance Embutido <span class="hint">máx. 20%</span></label>
-          <input type="text" id="e_pctEmbutido" inputmode="decimal" value="20">
-        </div>
-        <div class="field" id="e_pctTotalField" style="display:none;">
-          <label>% Total do Lance</label>
-          <input type="text" id="e_pctTotal" inputmode="decimal" value="">
-        </div>
-        <div class="field">
-          <label>Valor líquido desejado (R$) <span class="hint">para achar o crédito bruto</span></label>
-          <input type="text" id="e_valorLiquido" inputmode="decimal" value="310.000,00">
-        </div>
-      </div>
-      <div class="results">
-        <h3>Resultado</h3>
-        <div class="res-row"><span class="lbl">Custo total do crédito (100% + taxas)</span><span class="val" id="r3_custoTotal">—</span></div>
-        <div class="res-row"><span class="lbl">Percentual perdido (taxas sobre o lance)</span><span class="val" id="r3_pctPerdido">—</span></div>
-        <div class="res-row"><span class="lbl">% líquido recebido</span><span class="val" id="r3_pctLiquido">—</span></div>
-        <div class="res-row highlight"><span class="lbl">Coeficiente</span><span class="val" id="r3_coeficiente">—</span></div>
-        <div class="res-row highlight"><span class="lbl">Crédito bruto necessário</span><span class="val" id="r3_creditoBruto">—</span></div>
-        <div id="r3_dinheiroBlock" style="display:none;">
-          <div class="res-row"><span class="lbl">Lance total</span><span class="val" id="r3_lanceTotal">—</span></div>
-          <div class="res-row"><span class="lbl">Valor embutido (do crédito)</span><span class="val" id="r3_valorEmbutido">—</span></div>
-          <div class="res-row highlight"><span class="lbl">Valor em dinheiro</span><span class="val" id="r3_valorDinheiro">—</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="note">Custo total = 100% + Taxa Adm + Fundo Reserva. % perdido = Custo total × % Lance Embutido. % líquido = 100% − % perdido. Coeficiente = 100% ÷ % líquido. Crédito bruto = Valor líquido × Coeficiente.</div>
-  </div>
-
-  <footer class="foot">Ferramenta interna de apoio — Consórcio Valtra (Lei 11.795/2008). Valores de referência; confirme sempre com a tabela vigente da administradora.
-  </footer>
-</div>
-
-<script>
-function parseNum(str){
-  if(!str) return NaN;
-  str = str.toString().trim();
-  str = str.replace(/\./g,'').replace(',', '.');
-  return parseFloat(str);
-}
-function fmtBRL(n){
-  if(isNaN(n)) return '\u2014';
-  return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-}
-function fmtPct(n, casas){
-  if(isNaN(n)) return '\u2014';
-  return n.toLocaleString('pt-BR',{minimumFractionDigits:casas||4,maximumFractionDigits:casas||4})+'%';
-}
-function fmtNum(n, casas){
-  if(isNaN(n)) return '\u2014';
-  return n.toLocaleString('pt-BR',{minimumFractionDigits:casas||4,maximumFractionDigits:casas||4});
-}
-
-const roundCents = n => isNaN(n) ? n : Math.round(n * 100) / 100;
-
-function maskCurrency(el){
-  let raw = el.value.replace(/\D/g, '');
-  if(raw.length === 0){ el.value = ''; return; }
-  if(raw.length > 14) raw = raw.slice(0, 14);
-  let formatted;
-  if(raw.length <= 2){
-    formatted = '0,' + raw.padStart(2, '0');
-  } else {
-    const dec = raw.slice(-2);
-    const int = raw.slice(0, -2).replace(/^0+/, '') || '0';
-    formatted = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + dec;
-  }
-  el.value = formatted;
-}
-function setMaskedValue(el, num){
-  if(isNaN(num)) return;
-  const cents = Math.round(Math.abs(num) * 100);
-  const intPart = Math.floor(cents / 100).toString();
-  const decPart = (cents % 100).toString().padStart(2, '0');
-  const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + decPart;
-  el.value = formatted;
-}
-
-// ---- TABS ----
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-  });
-});
-
-// ---- PAINEL 1: PARCELA ----
-function calcParcela(){
-  const valorBem = parseNum(document.getElementById('p_valorBem').value);
-  const prazo = parseNum(document.getElementById('p_prazo').value);
-  const taxaAdm = parseNum(document.getElementById('p_taxaAdm').value);
-  const fundoReserva = parseNum(document.getElementById('p_fundoReserva').value);
-  const seguro = parseNum(document.getElementById('p_seguro').value);
-
-  const fatorTaxas = 1 + (taxaAdm/100) + (fundoReserva/100);
-  const valorCategoria = roundCents(valorBem * fatorTaxas);
-  const pctIdeal = 100/prazo;
-  const parcelaSemSeguro = roundCents((pctIdeal/100) * valorCategoria);
-  const valorSeguro = roundCents((seguro/100) * valorCategoria);
-  const parcelaComSeguro = roundCents(parcelaSemSeguro + valorSeguro);
-
-  document.getElementById('r_valorCategoria').textContent = fmtBRL(valorCategoria);
-  document.getElementById('r_pctIdeal').textContent = fmtPct(pctIdeal,4);
-  document.getElementById('r_valorSeguro').textContent = fmtBRL(valorSeguro);
-  document.getElementById('r_parcelaSemSeguro').textContent = fmtBRL(parcelaSemSeguro);
-  document.getElementById('r_parcelaComSeguro').textContent = fmtBRL(parcelaComSeguro);
-
-  document.getElementById('p_steps').innerHTML =
-    `<b>Mem\u00f3ria de c\u00e1lculo:</b><br>
-    Valor de Categoria = ${fmtBRL(valorBem)} \u00d7 (1 + ${taxaAdm}% + ${fundoReserva}%) = ${fmtBRL(valorCategoria)}<br>
-    % Ideal = 100% \u00f7 ${isNaN(prazo)?'-':prazo} meses = ${fmtPct(pctIdeal,4)}<br>
-    Parcela sem seguro = ${fmtPct(pctIdeal,4)} \u00d7 ${fmtBRL(valorCategoria)} = ${fmtBRL(parcelaSemSeguro)}<br>
-    Seguro = ${seguro}% \u00d7 ${fmtBRL(valorCategoria)} = ${fmtBRL(valorSeguro)}<br>
-    Parcela com seguro = ${fmtBRL(parcelaSemSeguro)} + ${fmtBRL(valorSeguro)} = ${fmtBRL(parcelaComSeguro)}`;
-}
-document.getElementById('p_valorBem').addEventListener('input', function(){
-  maskCurrency(this);
-  calcParcela();
-});
-['p_prazo','p_taxaAdm','p_fundoReserva','p_seguro'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', calcParcela);
-});
-
-const toggleBtn = document.getElementById('toggleSemSeguro');
-const blocoSemSeguro = document.getElementById('blocoSemSeguro');
-toggleBtn.addEventListener('click', (e)=>{
-  e.preventDefault();
-  const aberto = blocoSemSeguro.classList.toggle('open');
-  toggleBtn.classList.toggle('open');
-  toggleBtn.title = aberto ? 'Ocultar valores sem seguro' : 'Exibir valores sem seguro';
-});
-
-// ---- PAINEL 2: LANCE ----
-let lanceSource = 'valor';
-
-function calcLance(){
-  const valorBem = parseNum(document.getElementById('l_valorBem').value);
-  const taxaAdm = parseNum(document.getElementById('l_taxaAdm').value);
-  const fundoReserva = parseNum(document.getElementById('l_fundoReserva').value);
-
-  const fatorTaxas = 1 + (taxaAdm/100) + (fundoReserva/100);
-  const valorCategoria = roundCents(valorBem * fatorTaxas);
-
-  let valorLance, pctLance;
-
-  if(lanceSource === 'pct'){
-    pctLance = parseNum(document.getElementById('l_pctLance').value);
-    if(!isNaN(pctLance)){
-      valorLance = roundCents((pctLance/100) * valorCategoria);
-      setMaskedValue(document.getElementById('l_valorLance'), valorLance);
-    } else {
-      valorLance = parseNum(document.getElementById('l_valorLance').value);
-      pctLance = (valorLance/valorCategoria)*100;
-      if(!isNaN(pctLance)){
-        document.getElementById('l_pctLance').value = fmtNum(pctLance,4);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador Consórcio Valtra</title>
+    <style>
+      :root {
+        --black: #111;
+        --dark: #1e1e1e;
+        --mid: #4a4a4a;
+        --muted: #8a8a8a;
+        --border: #e2ddd6;
+        --bg: #f5f4f0;
+        --card: #fff;
+        --amber: #e8a020;
+        --green: #1a7a3c;
+        --r: 14px;
       }
-    }
-  } else {
-    valorLance = parseNum(document.getElementById('l_valorLance').value);
-    pctLance = (valorLance/valorCategoria)*100;
-    if(!isNaN(pctLance)){
-      document.getElementById('l_pctLance').value = fmtNum(pctLance,4);
-    }
-  }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--dark);
+        min-height: 100vh;
+      }
 
-  document.getElementById('r2_valorCategoria').textContent = fmtBRL(valorCategoria);
-  document.getElementById('r2_pctLance').textContent = fmtPct(pctLance,4);
-}
-document.getElementById('l_valorBem').addEventListener('input', function(){
-  maskCurrency(this);
-  if(document.getElementById('l_valorLance').value === ''){
-    lanceSource = 'pct';
-  }
-  calcLance();
-});
-['l_taxaAdm','l_fundoReserva'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', calcLance);
-});
-document.getElementById('l_valorLance').addEventListener('input', function(){
-  maskCurrency(this);
-  lanceSource = 'valor';
-  calcLance();
-});
-document.getElementById('l_pctLance').addEventListener('input', function(){
-  lanceSource = 'pct';
-  calcLance();
-});
+      /* ── HEADER ── */
+      .hd {
+        background: var(--black);
+        padding: 20px 24px 0;
+      }
+      .hd-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .badge {
+        background: var(--amber);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        padding: 4px 10px;
+        border-radius: 4px;
+      }
+      .hd-sub {
+        color: #666;
+        font-size: 12px;
+      }
+      .sel-wrap {
+        background: #1a1a1a;
+        border-radius: 10px 10px 0 0;
+        padding: 16px 18px 0;
+      }
+      .sel-lbl {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #555;
+        margin-bottom: 8px;
+      }
+      .prod-sel {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 17px;
+        font-weight: 700;
+        padding: 0 0 16px;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 4px center;
+      }
+      .prod-sel:focus {
+        outline: none;
+      }
+      .prod-sel option {
+        background: #1a1a1a;
+        color: #fff;
+      }
 
-// ---- PAINEL 3: LANCE EMBUTIDO / FIXO / LIVRE ----
-function calcEmbutido(){
-  const tipo = document.querySelector('input[name="e_tipo"]:checked').value;
-  const taxaAdm = parseNum(document.getElementById('e_taxaAdm').value);
-  const fundoReserva = parseNum(document.getElementById('e_fundoReserva').value);
-  const valorLiquido = parseNum(document.getElementById('e_valorLiquido').value);
+      /* ── COTAS STEPPER ── */
+      .cotas-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0 14px;
+        border-top: 1px solid #2a2a2a;
+        margin-top: 4px;
+      }
+      .cotas-lbl {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #555;
+      }
+      .stepper {
+        display: flex;
+        align-items: center;
+        background: #222;
+        border-radius: 9px;
+        overflow: hidden;
+      }
+      .stp-btn {
+        background: none;
+        border: none;
+        color: #777;
+        font-size: 22px;
+        font-weight: 300;
+        width: 38px;
+        height: 36px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        transition:
+          color 0.1s,
+          background 0.1s;
+      }
+      .stp-btn:hover {
+        background: #333;
+        color: #fff;
+      }
+      .stp-num {
+        color: #fff;
+        font-size: 17px;
+        font-weight: 800;
+        min-width: 36px;
+        text-align: center;
+        letter-spacing: -0.5px;
+      }
 
-  let pctEmbutido, pctLanceTotal;
+      /* ── HERO ── */
+      .hero {
+        background: var(--amber);
+        padding: 22px 24px 26px;
+      }
+      .hero-lbl {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 5px;
+      }
+      .hero-val {
+        font-size: 44px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -1.5px;
+        line-height: 1;
+      }
+      .hero-total {
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.55);
+        margin-top: 6px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
 
-  if(tipo === 'embutido'){
-    const emField = document.getElementById('e_pctEmbutido');
-    pctEmbutido = parseNum(emField.value);
-    if(pctEmbutido > 20){ pctEmbutido = 20; emField.value = '20,00'; }
-    pctLanceTotal = pctEmbutido;
-  } else if(tipo === 'fixo25'){
-    pctEmbutido = 20;
-    pctLanceTotal = 25;
-  } else if(tipo === 'fixo35'){
-    pctEmbutido = 20;
-    pctLanceTotal = 35;
-  } else {
-    const pctTotal = parseNum(document.getElementById('e_pctTotal').value);
-    pctEmbutido = Math.min(pctTotal || 0, 20);
-    pctLanceTotal = pctTotal;
-  }
+      /* ── STATS ── */
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+      .sc {
+        background: var(--card);
+        padding: 13px 18px;
+      }
+      .sc-lbl {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 3px;
+      }
+      .sc-val {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--dark);
+      }
+      .sc-val.g {
+        color: var(--green);
+      }
 
-  const pctCash = pctLanceTotal - pctEmbutido;
-  const custoTotal = 100 + taxaAdm + fundoReserva;
-  const pctPerdido = (custoTotal/100) * pctEmbutido;
-  const pctLiquido = 100 - pctPerdido;
-  const coeficiente = 100/pctLiquido;
-  const creditoBruto = roundCents(valorLiquido * coeficiente);
-  const valorEmbutido = roundCents((pctEmbutido/100) * creditoBruto);
-  const valorDinheiro = roundCents((pctCash/100) * creditoBruto);
+      /* ── LAYOUT ── */
+      .wrap {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 20px 16px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
 
-  document.getElementById('r3_custoTotal').textContent = fmtPct(custoTotal,2);
-  document.getElementById('r3_pctPerdido').textContent = fmtPct(pctPerdido,4);
-  document.getElementById('r3_pctLiquido').textContent = fmtPct(pctLiquido,4);
-  document.getElementById('r3_coeficiente').textContent = fmtNum(coeficiente,4);
-  document.getElementById('r3_creditoBruto').textContent = fmtBRL(creditoBruto);
+      /* ── CARD ── */
+      .card {
+        background: var(--card);
+        border-radius: var(--r);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+      .ch {
+        padding: 16px 20px 13px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .ct {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .cb {
+        padding: 20px;
+      }
 
-  const dinheiroBlock = document.getElementById('r3_dinheiroBlock');
-  if(pctCash > 0 && !isNaN(creditoBruto)){
-    dinheiroBlock.style.display = 'block';
-    document.getElementById('r3_lanceTotal').textContent = fmtPct(pctLanceTotal,2);
-    document.getElementById('r3_valorEmbutido').textContent = fmtBRL(valorEmbutido);
-    document.getElementById('r3_valorDinheiro').textContent = fmtBRL(valorDinheiro);
-  } else {
-    dinheiroBlock.style.display = 'none';
-  }
+      /* ── TOGGLE SWITCH ── */
+      .tg-grp {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .tg-lbl {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--mid);
+      }
+      .sw {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+      .sw input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .sw-track {
+        position: absolute;
+        inset: 0;
+        background: var(--border);
+        border-radius: 24px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .sw-track::before {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        left: 3px;
+        top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+      input:checked + .sw-track {
+        background: var(--amber);
+      }
+      input:checked + .sw-track::before {
+        transform: translateX(20px);
+      }
 
-  if(tipo !== 'embutido' && !isNaN(pctEmbutido)){
-    document.getElementById('e_pctEmbutido').value = fmtNum(pctEmbutido,2);
-  }
-}
+      /* ── PARCELA ── */
+      .parc-num {
+        font-size: 50px;
+        font-weight: 800;
+        color: var(--dark);
+        letter-spacing: -2px;
+        line-height: 1;
+        margin-bottom: 5px;
+      }
+      .parc-sub {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .parc-total {
+        margin-top: 10px;
+        padding: 10px 14px;
+        background: var(--bg);
+        border-radius: 9px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .pt-lbl {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.3px;
+      }
+      .pt-val {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--dark);
+      }
+      .parc-det {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        gap: 28px;
+      }
+      .pd-lbl {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+      .pd-val {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--mid);
+      }
 
-document.getElementById('e_valorLiquido').addEventListener('input', function(){
-  maskCurrency(this);
-  calcEmbutido();
-});
-['e_taxaAdm','e_fundoReserva'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', calcEmbutido);
-});
-document.getElementById('e_pctEmbutido').addEventListener('input', calcEmbutido);
-document.getElementById('e_pctTotal').addEventListener('input', calcEmbutido);
+      /* ── LANCE INPUTS ── */
+      .f-row {
+        margin-bottom: 18px;
+      }
+      .f-lbl {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--mid);
+        margin-bottom: 7px;
+        display: block;
+      }
+      .pct-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .pct-in {
+        width: 80px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--dark);
+        text-align: center;
+        background: var(--bg);
+        font-family: inherit;
+      }
+      .pct-in:focus {
+        outline: none;
+        border-color: var(--amber);
+        background: #fff;
+      }
+      .pct-in.invalid {
+        border-color: var(--amber);
+        background: #fff5f5;
+      }
+      .pct-sym {
+        font-size: 16px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .pct-hint {
+        font-size: 12px;
+        color: var(--muted);
+        margin-left: 4px;
+      }
 
-document.querySelectorAll('input[name="e_tipo"]').forEach(radio=>{
-  radio.addEventListener('change', function(){
-    document.querySelectorAll('.tipo-opt').forEach(o=>o.classList.remove('active'));
-    this.closest('.tipo-opt').classList.add('active');
-    const tipo = this.value;
-    const emField = document.getElementById('e_pctEmbutido');
-    const totalField = document.getElementById('e_pctTotalField');
-    if(tipo === 'embutido'){
-      emField.disabled = false;
-      totalField.style.display = 'none';
-    } else if(tipo === 'fixo25'){
-      emField.value = '20,00'; emField.disabled = true;
-      totalField.style.display = 'none';
-    } else if(tipo === 'fixo35'){
-      emField.value = '20,00'; emField.disabled = true;
-      totalField.style.display = 'none';
-    } else {
-      emField.value = ''; emField.disabled = true;
-      totalField.style.display = 'block';
-      document.getElementById('e_pctTotal').focus();
-    }
-    calcEmbutido();
-  });
-});
+      /* ── ALERT ── */
+      .alert-box {
+        display: none;
+        background: #fff5f5;
+        border: 1.5px solid var(--amber);
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--amber);
+        margin-bottom: 16px;
+        line-height: 1.4;
+      }
+      .alert-box.show {
+        display: block;
+      }
+      .alert-box.warn {
+        background: #fffbf0;
+        border-color: var(--amber);
+        color: #8a6000;
+      }
 
-// ---- HELP BUTTONS ----
-document.querySelectorAll('.helper-btn').forEach(btn=>{
-  btn.addEventListener('click', function(){
-    this.closest('.panel').classList.toggle('help-open');
-    this.classList.toggle('active');
-  });
-});
+      /* ── SLIDER ── */
+      .sl-wrap {
+        margin-bottom: 20px;
+      }
+      .sl-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+      .sl-info-lbl {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--mid);
+        margin-bottom: 2px;
+      }
+      .sl-info-hint {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .sl-num {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--amber);
+        line-height: 1;
+      }
+      .sl-num span {
+        font-size: 16px;
+      }
+      input[type="range"] {
+        width: 100%;
+        height: 6px;
+        border-radius: 6px;
+        appearance: none;
+        -webkit-appearance: none;
+        background: var(--border);
+        cursor: pointer;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--amber);
+        box-shadow: 0 2px 8px rgba(200, 16, 46, 0.35);
+        cursor: pointer;
+      }
+      .sl-limits {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 7px;
+        font-weight: 600;
+      }
 
-calcParcela();
-calcLance();
-calcEmbutido();
+      /* ── LANCE RESULTS ── */
+      .lr {
+        background: var(--dark);
+        border-radius: 12px;
+        padding: 18px 20px;
+      }
+      .lr-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 9px 0;
+        border-bottom: 1px solid #2a2a2a;
+      }
+      .lr-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .lr-row:first-child {
+        padding-top: 0;
+      }
+      .lr-lbl {
+        font-size: 12px;
+        color: #888;
+      }
+      .lr-val {
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .lr-row.hl .lr-lbl {
+        font-size: 13px;
+        color: #ccc;
+      }
+      .lr-row.hl .lr-val {
+        font-size: 22px;
+        color: var(--amber);
+      }
 
-// ---- SERVICE WORKER ----
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js');
-}
-</script>
+      /* ── ADD TO CART BUTTON ── */
+      .btn-addcart {
+        width: 100%;
+        background: #1e1e1e;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: inherit;
+        transition: background 0.15s;
+        letter-spacing: 0.3px;
+      }
+      .btn-addcart:hover {
+        background: #2d2d2d;
+      }
+      .btn-addcart.added {
+        background: var(--green);
+      }
 
-</body>
+      /* ── PARAMS ── */
+      .p-toggle {
+        background: none;
+        border: none;
+        font-family: inherit;
+        font-size: 11px;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .p-toggle:hover {
+        color: var(--dark);
+      }
+      .p-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .p-body.off {
+        display: none;
+      }
+      .pf label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .pf input {
+        width: 100%;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--dark);
+        background: var(--bg);
+        font-family: inherit;
+      }
+      .pf input:focus {
+        outline: none;
+        border-color: var(--amber);
+      }
+
+      /* ── CART SECTION ── */
+      .cart-section {
+        max-width: 680px;
+        margin: 20px auto 0;
+        padding: 0 16px 80px;
+      }
+      .cart-wrap {
+        border-radius: var(--r);
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      .cart-hd {
+        background: var(--dark);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .cart-title {
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--amber);
+      }
+      .cart-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .cart-badge {
+        background: var(--amber);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 2px 9px;
+        border-radius: 20px;
+        min-width: 22px;
+        text-align: center;
+      }
+      .cart-clear {
+        background: none;
+        border: none;
+        color: #555;
+        font-size: 11px;
+        cursor: pointer;
+        font-family: inherit;
+        padding: 0;
+      }
+      .cart-clear:hover {
+        color: #999;
+      }
+      .cart-body {
+        background: var(--card);
+      }
+      .cart-empty {
+        padding: 32px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      /* Cart item */
+      .ci {
+        border-bottom: 1px solid var(--border);
+      }
+      .ci:last-child {
+        border-bottom: none;
+      }
+      .ci-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+      }
+      .ci-left {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex-shrink: 0;
+      }
+      .ci-cod {
+        background: var(--dark);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 5px;
+        letter-spacing: 0.5px;
+      }
+      .ci-cotas {
+        font-size: 10px;
+        color: var(--muted);
+        font-weight: 600;
+        text-align: center;
+      }
+      .ci-nums {
+        display: flex;
+        gap: 0;
+        flex: 1;
+        justify-content: space-around;
+      }
+      .ci-n {
+        text-align: center;
+      }
+      .ci-nlbl {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+      .ci-nval {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--dark);
+      }
+      .ci-nval.hl {
+        color: var(--amber);
+      }
+      .ci-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .ci-toggle {
+        background: none;
+        border: none;
+        font-size: 14px;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 6px;
+      }
+      .ci-toggle:hover {
+        background: var(--bg);
+      }
+      .ci-del {
+        background: none;
+        border: none;
+        font-size: 13px;
+        color: #ccc;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 6px;
+      }
+      .ci-del:hover {
+        background: #fff0f0;
+        color: var(--amber);
+      }
+
+      /* Item detail */
+      .ci-det {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.25s ease;
+      }
+      .ci-det.open {
+        max-height: 300px;
+      }
+      .ci-det-inner {
+        background: #f9f8f5;
+        border-top: 1px solid var(--border);
+        padding: 14px 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .ci-df {
+      }
+      .ci-dflbl {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+      .ci-dfval {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--dark);
+      }
+      .ci-dfval.red {
+        color: var(--amber);
+      }
+      .ci-dfval.green {
+        color: var(--green);
+      }
+
+      /* Cart totals */
+      .cart-totals {
+        background: var(--dark);
+        margin: 12px;
+        border-radius: 12px;
+        padding: 16px 20px;
+      }
+      .cart-totals-empty {
+        display: none;
+      }
+      .ctot-title {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin-bottom: 10px;
+      }
+      .ctot-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 20px;
+      }
+      .ctot-item {
+      }
+      .ctot-lbl {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #666;
+        margin-bottom: 2px;
+      }
+      .ctot-val {
+        font-size: 15px;
+        font-weight: 800;
+        color: #fff;
+      }
+      .ctot-val.hl {
+        color: var(--amber);
+      }
+      .ctot-divider {
+        height: 1px;
+        background: #2a2a2a;
+        grid-column: 1/-1;
+        margin: 4px 0;
+      }
+
+      /* Footer */
+      .foot {
+        text-align: center;
+        padding: 0 16px 36px;
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .foot a {
+        color: #bbb;
+        font-size: 10.5px;
+        text-decoration: none;
+        border-bottom: 1px dotted #ccc;
+      }
+      .foot a:hover {
+        color: #888;
+      }
+
+      @media (max-width: 480px) {
+        .hero-val {
+          font-size: 32px;
+        }
+        .parc-num {
+          font-size: 36px;
+        }
+        .lr-row.hl .lr-val {
+          font-size: 18px;
+        }
+        .ci-nums {
+          gap: 0;
+        }
+        .ci-det-inner {
+          grid-template-columns: 1fr 1fr;
+        }
+        .ctot-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <div class="hd">
+      <div class="hd-top">
+        <span class="badge">Valtra</span>
+        <span class="hd-sub">Simulador de Consórcio · uso interno</span>
+      </div>
+      <div class="sel-wrap">
+        <div class="sel-lbl">Selecionar produto</div>
+        <select class="prod-sel" id="prodSel">
+          <option value="259531">VA503801 — R$ 259.531,00</option>
+          <option value="280294">VA503802 — R$ 280.294,00</option>
+          <option value="301056" selected>VA503803 — R$ 301.056,00</option>
+          <option value="321819">VA503804 — R$ 321.819,00</option>
+          <option value="342581">VA503805 — R$ 342.581,00</option>
+          <option value="363344">VA503806 — R$ 363.344,00</option>
+          <option value="384106">VA503807 — R$ 384.106,00</option>
+          <option value="404869">VA503808 — R$ 404.869,00</option>
+          <option value="425631">VA503809 — R$ 425.631,00</option>
+          <option value="446394">VA503810 — R$ 446.394,00</option>
+          <option value="467156">VA503811 — R$ 467.156,00</option>
+          <option value="493109">VA503812 — R$ 493.109,00</option>
+          <option value="519063">VA503813 — R$ 519.063,00</option>
+        </select>
+        <div class="cotas-row">
+          <span class="cotas-lbl">Nº de cotas</span>
+          <div class="stepper">
+            <button class="stp-btn" id="cotaMenos">−</button>
+            <span class="stp-num" id="cotaNum">1</span>
+            <button class="stp-btn" id="cotaMais">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-lbl">Crédito do produto</div>
+      <div class="hero-val" id="heroVal">—</div>
+      <div class="hero-total" id="heroTotal"></div>
+    </div>
+
+    <div class="stats">
+      <div class="sc">
+        <div class="sc-lbl" id="scCatLbl">Valor de Categoria</div>
+        <div class="sc-val" id="scCategoria">—</div>
+      </div>
+      <div class="sc">
+        <div class="sc-lbl" id="scDispLbl">Disponível (−20% cat.)</div>
+        <div class="sc-val g" id="scDisponivel">—</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="wrap">
+      <!-- PARCELA -->
+      <div class="card">
+        <div class="ch">
+          <span class="ct">Parcela mensal</span>
+          <div class="tg-grp">
+            <span class="tg-lbl" id="segLbl">Com seguro</span>
+            <label class="sw">
+              <input type="checkbox" id="segTog" checked />
+              <span class="sw-track"></span>
+            </label>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="parc-num" id="parcNum">—</div>
+          <div class="parc-sub" id="parcSub">por mês</div>
+          <div class="parc-total" id="parcTotalBlock" style="display: none">
+            <span class="pt-lbl" id="parcTotalLbl"
+              >Total por mês (2 cotas)</span
+            >
+            <span class="pt-val" id="parcTotal">—</span>
+          </div>
+          <div class="parc-det">
+            <div>
+              <div class="pd-lbl">
+                Amortização
+                <span
+                  id="amortCotaHint"
+                  style="
+                    font-weight: 400;
+                    text-transform: none;
+                    letter-spacing: 0;
+                    font-size: 9px;
+                  "
+                ></span>
+              </div>
+              <div class="pd-val" id="pdAmort">—</div>
+            </div>
+            <div id="pdSeguroBlock">
+              <div class="pd-lbl">Seguro de vida</div>
+              <div class="pd-val" id="pdSeguro">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LANCE -->
+      <div class="card">
+        <div class="ch"><span class="ct">Simulação de lance</span></div>
+        <div class="cb">
+          <div class="f-row">
+            <label class="f-lbl" for="pctLance"
+              >% total do lance (sobre o Valor de Categoria)</label
+            >
+            <div class="pct-wrap">
+              <input
+                type="number"
+                class="pct-in"
+                id="pctLance"
+                value="50"
+                min="0"
+                max="100"
+                step="1"
+              />
+              <span class="pct-sym">%</span>
+              <span class="pct-hint" id="lanceHint"></span>
+            </div>
+          </div>
+
+          <!-- Alerta lance mínimo -->
+          <div class="alert-box" id="alertLanceMin">
+            ⚠️ Lance mínimo permitido é de <strong>2%</strong> do valor do plano
+            (art. 14.11 do Regulamento).
+          </div>
+
+          <div class="sl-wrap">
+            <div class="sl-top">
+              <div>
+                <div class="sl-info-lbl">% embutido no lance</div>
+                <div class="sl-info-hint">
+                  Usa parte do próprio crédito como lance · máx. 20%
+                </div>
+              </div>
+              <div class="sl-num" id="slNum">0<span>%</span></div>
+            </div>
+            <input
+              type="range"
+              id="slEmb"
+              min="0"
+              max="20"
+              step="1"
+              value="0"
+            />
+            <div class="sl-limits">
+              <span>0% — só dinheiro</span><span>20% — máximo</span>
+            </div>
+          </div>
+
+          <!-- Alerta embutido > lance -->
+          <div
+            class="alert-box warn"
+            id="alertEmbutido"
+            style="margin-bottom: 14px"
+          ></div>
+
+          <div class="lr">
+            <div class="lr-row">
+              <span class="lr-lbl" id="lrTotLbl">Valor total do lance</span>
+              <span class="lr-val" id="lrTot">—</span>
+            </div>
+            <div class="lr-row">
+              <span class="lr-lbl" id="lrEmbLbl"
+                >Parte embutida (do crédito)</span
+              >
+              <span class="lr-val" id="lrEmb">—</span>
+            </div>
+            <div class="lr-row hl">
+              <span class="lr-lbl">💵 A desembolsar pelo cliente</span>
+              <span class="lr-val" id="lrDeseq">—</span>
+            </div>
+            <div class="lr-row">
+              <span class="lr-lbl" id="lrLiqLbl"
+                >Crédito líquido recebido após lance</span
+              >
+              <span class="lr-val" id="lrLiq">—</span>
+            </div>
+          </div>
+
+          <button class="btn-addcart" id="btnAddCart">
+            <span id="btnAddCartIcon">＋</span>
+            <span id="btnAddCartTxt">Adicionar à Carteira</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PARÂMETROS -->
+      <div class="card">
+        <div class="ch">
+          <span class="ct">Parâmetros do grupo</span>
+          <button class="p-toggle" id="pToggle">
+            Julho 2026 · ADM 14% · 150 meses ▾
+          </button>
+        </div>
+        <div class="cb">
+          <div class="p-body off" id="pBody">
+            <div class="pf">
+              <label>% Amortização mensal</label
+              ><input type="text" id="pAmort" value="0,7407" />
+            </div>
+            <div class="pf">
+              <label>Taxa de ADM (%)</label
+              ><input type="text" id="pAdm" value="14" />
+            </div>
+            <div class="pf">
+              <label>Fundo de Reserva (%)</label
+              ><input type="text" id="pFundo" value="1" />
+            </div>
+            <div class="pf">
+              <label>Seguro de Vida (%)</label
+              ><input type="text" id="pSeg" value="0,050" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CART -->
+    <div class="cart-section">
+      <div class="cart-wrap">
+        <div class="cart-hd">
+          <span class="cart-title">💳 Carteira do cliente</span>
+          <div class="cart-meta">
+            <span class="cart-badge" id="cartBadge">0</span>
+            <button class="cart-clear" id="btnClearCart">Limpar tudo</button>
+          </div>
+        </div>
+        <div class="cart-body" id="cartBody">
+          <div class="cart-empty" id="cartEmpty">
+            Nenhum produto adicionado ainda.<br />
+            <span style="font-size: 11px; color: #bbb"
+              >Use o botão "Adicionar à carteira" na simulação acima.</span
+            >
+          </div>
+          <div id="cartItems"></div>
+          <div class="cart-totals" id="cartTotals" style="display: none">
+            <div class="ctot-title">Totalizadores</div>
+            <div class="ctot-grid" id="ctotGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      Ferramenta interna · Consórcio Valtra · Julho 2026 · Assembleia 16ª ·
+      Vencimento 16/07/2026
+      <br /><br />
+      <a href="#" id="semSegLink">exibir comparativo sem seguro</a>
+    </div>
+
+    <script>
+      function pn(s) {
+        return parseFloat(String(s).replace(/\./g, "").replace(",", "."));
+      }
+      function brl(n) {
+        return isNaN(n)
+          ? "—"
+          : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      }
+      function pct(n, d) {
+        return isNaN(n)
+          ? "—"
+          : n.toLocaleString("pt-BR", {
+              minimumFractionDigits: d || 2,
+              maximumFractionDigits: d || 2,
+            }) + "%";
+      }
+
+      let cotas = 1;
+      let cart = [];
+
+      function gp() {
+        return {
+          amort: pn(document.getElementById("pAmort").value) / 100,
+          adm: pn(document.getElementById("pAdm").value) / 100,
+          fundo: pn(document.getElementById("pFundo").value) / 100,
+          seg: pn(document.getElementById("pSeg").value) / 100,
+        };
+      }
+
+      function computeVals(
+        credito1,
+        cotas,
+        comSeguro,
+        pLancePct,
+        pEmbPct,
+        params,
+      ) {
+        const { amort, adm, fundo, seg } = params;
+        const pLance = pLancePct / 100;
+        const pEmb = pEmbPct / 100;
+        // per cota
+        const cat1 = credito1 * (1 + adm + fundo);
+        const disp1 = credito1 - 0.2 * cat1;
+        const amortV1 = amort * cat1;
+        const segV1 = seg * cat1;
+        const parc1 = comSeguro ? amortV1 + segV1 : amortV1;
+        // totals
+        const catT = cat1 * cotas;
+        const dispT = disp1 * cotas;
+        const parcT = parc1 * cotas;
+        const credT = credito1 * cotas;
+        // lance (always on totals)
+        const lanceEffPct = Math.min(pEmb, pLance); // cap embutido at lance
+        const lanceTot = pLance * catT;
+        const embV = lanceEffPct * catT;
+        const desemb = lanceTot - embV;
+        const liqCred = credT - embV;
+        return {
+          cat1,
+          disp1,
+          amortV1,
+          segV1,
+          parc1,
+          catT,
+          dispT,
+          parcT,
+          credT,
+          lanceTot,
+          embV,
+          desemb,
+          liqCred,
+        };
+      }
+
+      function calc() {
+        const credito1 = pn(document.getElementById("prodSel").value);
+        const p = gp();
+        const comSeg = document.getElementById("segTog").checked;
+        const pLancePct = pn(document.getElementById("pctLance").value) || 0;
+        const pEmbPct = parseInt(document.getElementById("slEmb").value) || 0;
+        const multi = cotas > 1;
+
+        const v = computeVals(credito1, cotas, comSeg, pLancePct, pEmbPct, p);
+
+        // ── Hero ──
+        document.getElementById("heroVal").textContent = multi
+          ? brl(credito1)
+          : brl(v.credT);
+        const htEl = document.getElementById("heroTotal");
+        if (multi) {
+          htEl.textContent = `${cotas} cotas · total ${brl(v.credT)}`;
+          htEl.style.display = "block";
+        } else {
+          htEl.style.display = "none";
+        }
+
+        // ── Stats ──
+        document.getElementById("scCatLbl").textContent = multi
+          ? `Categoria · total (${cotas}×)`
+          : "Valor de Categoria";
+        document.getElementById("scCategoria").textContent = brl(v.catT);
+        document.getElementById("scDispLbl").textContent = multi
+          ? `Disponível · total (${cotas}×)`
+          : "Disponível (−20% cat.)";
+        document.getElementById("scDisponivel").textContent = brl(v.dispT);
+
+        // ── Parcela ──
+        document.getElementById("parcNum").textContent = brl(v.parc1);
+        document.getElementById("parcSub").textContent = comSeg
+          ? multi
+            ? "por cota · com seguro"
+            : "por mês · com seguro"
+          : multi
+            ? "por cota · sem seguro"
+            : "por mês · sem seguro";
+        const ptBlock = document.getElementById("parcTotalBlock");
+        if (multi) {
+          ptBlock.style.display = "flex";
+          document.getElementById("parcTotalLbl").textContent =
+            `Total por mês (${cotas} cotas)`;
+          document.getElementById("parcTotal").textContent = brl(v.parcT);
+          document.getElementById("amortCotaHint").textContent = "por cota";
+        } else {
+          ptBlock.style.display = "none";
+          document.getElementById("amortCotaHint").textContent = "";
+        }
+        document.getElementById("pdAmort").textContent = brl(v.amortV1);
+        document.getElementById("pdSeguro").textContent = brl(v.segV1);
+        document.getElementById("pdSeguroBlock").style.opacity = comSeg
+          ? "1"
+          : "0.35";
+        document.getElementById("segLbl").textContent = comSeg
+          ? "Com seguro"
+          : "Sem seguro";
+
+        // ── Lance alerts ──
+        const alertMin = document.getElementById("alertLanceMin");
+        const alertEmb = document.getElementById("alertEmbutido");
+        const lanceInEl = document.getElementById("pctLance");
+
+        if (pLancePct > 0 && pLancePct < 2) {
+          alertMin.classList.add("show");
+          lanceInEl.classList.add("invalid");
+        } else {
+          alertMin.classList.remove("show");
+          lanceInEl.classList.remove("invalid");
+        }
+
+        if (pEmbPct > pLancePct && pLancePct > 0) {
+          alertEmb.textContent = `⚠️ Embutido (${pEmbPct}%) excede o lance total (${pLancePct}%). O cálculo foi limitado a ${pLancePct}%.`;
+          alertEmb.classList.add("show");
+        } else {
+          alertEmb.classList.remove("show");
+        }
+
+        // ── Lance results ──
+        const suf = multi ? ` (${cotas} cotas)` : "";
+        document.getElementById("lrTotLbl").textContent =
+          `Valor total do lance${suf}`;
+        document.getElementById("lrEmbLbl").textContent =
+          `Parte embutida do crédito${suf}`;
+        document.getElementById("lrLiqLbl").textContent =
+          `Crédito líquido após lance${suf}`;
+        document.getElementById("lanceHint").textContent =
+          pLancePct > 0
+            ? `= ${brl(v.lanceTot)}` + (multi ? ` (${cotas} cotas)` : "")
+            : "";
+        document.getElementById("slNum").innerHTML = pEmbPct + "<span>%</span>";
+        document.getElementById("lrTot").textContent = brl(v.lanceTot);
+        document.getElementById("lrEmb").textContent =
+          pEmbPct > 0 ? brl(v.embV) : "R$ 0,00 (lance 100% em dinheiro)";
+        document.getElementById("lrDeseq").textContent = brl(v.desemb);
+        document.getElementById("lrLiq").textContent = brl(v.liqCred);
+      }
+
+      // ── COTAS STEPPER ──
+      document.getElementById("cotaMais").addEventListener("click", () => {
+        cotas = Math.min(cotas + 1, 20);
+        document.getElementById("cotaNum").textContent = cotas;
+        calc();
+      });
+      document.getElementById("cotaMenos").addEventListener("click", () => {
+        cotas = Math.max(cotas - 1, 1);
+        document.getElementById("cotaNum").textContent = cotas;
+        calc();
+      });
+
+      // ── PARAMS TOGGLE ──
+      document.getElementById("pToggle").addEventListener("click", function () {
+        const b = document.getElementById("pBody");
+        b.classList.toggle("off");
+        this.textContent = b.classList.contains("off")
+          ? "Julho 2026 · ADM 14% · 150 meses ▾"
+          : "Fechar ▴";
+      });
+
+      // ── SEM SEGURO LINK ──
+      document
+        .getElementById("semSegLink")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          const tog = document.getElementById("segTog");
+          tog.checked = !tog.checked;
+          this.textContent = tog.checked
+            ? "exibir comparativo sem seguro"
+            : "exibir comparativo com seguro";
+          calc();
+        });
+
+      // ── CART ──
+      function getCodFromSelect() {
+        const sel = document.getElementById("prodSel");
+        return sel.options[sel.selectedIndex].text.split("—")[0].trim();
+      }
+
+      function addToCart() {
+        const credito1 = pn(document.getElementById("prodSel").value);
+        const comSeg = document.getElementById("segTog").checked;
+        const pLancePct = pn(document.getElementById("pctLance").value) || 0;
+        const pEmbPct = parseInt(document.getElementById("slEmb").value) || 0;
+        const p = gp();
+        const v = computeVals(credito1, cotas, comSeg, pLancePct, pEmbPct, p);
+        const cod = getCodFromSelect();
+
+        cart.push({
+          id: Date.now(),
+          cod,
+          credito1,
+          cotas,
+          comSeg,
+          pLancePct,
+          pEmbPct,
+          ...v,
+          params: { ...p },
+        });
+
+        renderCart();
+
+        // feedback
+        const btn = document.getElementById("btnAddCart");
+        const txt = document.getElementById("btnAddCartTxt");
+        const ico = document.getElementById("btnAddCartIcon");
+        btn.classList.add("added");
+        txt.textContent = "Adicionado!";
+        ico.textContent = "✓";
+        setTimeout(() => {
+          btn.classList.remove("added");
+          txt.textContent = "Adicionar à carteira";
+          ico.textContent = "＋";
+        }, 1500);
+      }
+
+      function removeFromCart(id) {
+        cart = cart.filter((it) => it.id !== id);
+        renderCart();
+      }
+
+      function toggleDetail(id) {
+        const el = document.getElementById("det-" + id);
+        if (el) el.classList.toggle("open");
+      }
+
+      function renderCart() {
+        const badge = document.getElementById("cartBadge");
+        const empty = document.getElementById("cartEmpty");
+        const items = document.getElementById("cartItems");
+        const totals = document.getElementById("cartTotals");
+        const grid = document.getElementById("ctotGrid");
+
+        badge.textContent = cart.length;
+
+        if (cart.length === 0) {
+          empty.style.display = "block";
+          items.innerHTML = "";
+          totals.style.display = "none";
+          return;
+        }
+        empty.style.display = "none";
+
+        // render items
+        items.innerHTML = cart
+          .map((it) => {
+            const hasLance = it.pLancePct > 0;
+            return `
+    <div class="ci" id="ci-${it.id}">
+      <div class="ci-main">
+        <div class="ci-left">
+          <span class="ci-cod">${it.cod}</span>
+          <span class="ci-cotas">${it.cotas} cota${it.cotas > 1 ? "s" : ""}</span>
+        </div>
+        <div class="ci-nums">
+          <div class="ci-n">
+            <div class="ci-nlbl">Parcela/mês</div>
+            <div class="ci-nval">${brl(it.parcT)}</div>
+          </div>
+          <div class="ci-n">
+            <div class="ci-nlbl">Crédito total</div>
+            <div class="ci-nval">${brl(it.credT)}</div>
+          </div>
+          ${
+            hasLance
+              ? `
+          <div class="ci-n">
+            <div class="ci-nlbl">Desembolso lance</div>
+            <div class="ci-nval hl">${brl(it.desemb)}</div>
+          </div>`
+              : `
+          <div class="ci-n">
+            <div class="ci-nlbl">Lance</div>
+            <div class="ci-nval" style="color:var(--muted);font-size:11px;">não simulado</div>
+          </div>`
+          }
+        </div>
+        <div class="ci-actions">
+          <button class="ci-toggle" onclick="toggleDetail(${it.id})">▾</button>
+          <button class="ci-del" onclick="removeFromCart(${it.id})">✕</button>
+        </div>
+      </div>
+      <div class="ci-det" id="det-${it.id}">
+        <div class="ci-det-inner">
+          <div class="ci-df"><div class="ci-dflbl">Crédito por cota</div><div class="ci-dfval">${brl(it.credito1)}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Valor de Categoria</div><div class="ci-dfval">${brl(it.catT)}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Disponível (−20%)</div><div class="ci-dfval green">${brl(it.dispT)}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Parcela por cota</div><div class="ci-dfval">${brl(it.parc1)}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Seguro</div><div class="ci-dfval">${it.comSeg ? "Com seguro" : "Sem seguro"}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Parcela total/mês</div><div class="ci-dfval">${brl(it.parcT)}</div></div>
+          ${
+            hasLance
+              ? `
+          <div class="ci-df"><div class="ci-dflbl">Lance (${it.pLancePct}%)</div><div class="ci-dfval">${brl(it.lanceTot)}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Embutido (${it.pEmbPct}%)</div><div class="ci-dfval">${brl(it.embV)}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Desembolso</div><div class="ci-dfval red">${brl(it.desemb)}</div></div>
+          <div class="ci-df"><div class="ci-dflbl">Crédito líquido</div><div class="ci-dfval green">${brl(it.liqCred)}</div></div>
+          `
+              : ""
+          }
+        </div>
+      </div>
+    </div>`;
+          })
+          .join("");
+
+        // totals
+        const totCredito = cart.reduce((s, it) => s + it.credT, 0);
+        const totCategoria = cart.reduce((s, it) => s + it.catT, 0);
+        const totParcela = cart.reduce((s, it) => s + it.parcT, 0);
+        const totDesembolso = cart.reduce((s, it) => s + it.desemb, 0);
+        const totLiqCred = cart.reduce((s, it) => s + it.liqCred, 0);
+        const totCotas = cart.reduce((s, it) => s + it.cotas, 0);
+
+        grid.innerHTML = `
+    <div class="ctot-item"><div class="ctot-lbl">Total de cotas</div><div class="ctot-val">${totCotas}</div></div>
+    <div class="ctot-item"><div class="ctot-lbl">Total crédito</div><div class="ctot-val">${brl(totCredito)}</div></div>
+    <div class="ctot-item"><div class="ctot-lbl">Total categoria</div><div class="ctot-val">${brl(totCategoria)}</div></div>
+    <div class="ctot-item"><div class="ctot-lbl">Total parcelas/mês</div><div class="ctot-val hl">${brl(totParcela)}</div></div>
+    <div class="ctot-divider"></div>
+    <div class="ctot-item"><div class="ctot-lbl">Total a desembolsar (lances)</div><div class="ctot-val hl">${brl(totDesembolso)}</div></div>
+    <div class="ctot-item"><div class="ctot-lbl">Total crédito líquido</div><div class="ctot-val">${brl(totLiqCred)}</div></div>
+  `;
+        totals.style.display = "block";
+      }
+
+      document
+        .getElementById("btnAddCart")
+        .addEventListener("click", addToCart);
+      document.getElementById("btnClearCart").addEventListener("click", () => {
+        cart = [];
+        renderCart();
+      });
+
+      // ── BIND EVENTS ──
+      [
+        "prodSel",
+        "pctLance",
+        "slEmb",
+        "segTog",
+        "pAmort",
+        "pAdm",
+        "pFundo",
+        "pSeg",
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        el.addEventListener("input", calc);
+        el.addEventListener("change", calc);
+      });
+
+      calc();
+      renderCart();
+    </script>
+  </body>
 </html>
