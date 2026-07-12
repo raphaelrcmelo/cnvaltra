@@ -263,6 +263,7 @@
         border-radius: 24px;
         cursor: pointer;
         transition: background 0.2s;
+        opacity: 0.15;
       }
       .sw-track::before {
         content: "";
@@ -275,9 +276,11 @@
         border-radius: 50%;
         transition: transform 0.2s;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        opacity: 0.2;
       }
       input:checked + .sw-track {
         background: var(--amber);
+        opacity: 0.2;
       }
       input:checked + .sw-track::before {
         transform: translateX(20px);
@@ -320,8 +323,37 @@
         margin-top: 16px;
         padding-top: 16px;
         border-top: 1px solid var(--border);
-        display: flex;
+        display: none;
         gap: 28px;
+        opacity: 0.6;
+      }
+      .parc-det.show {
+        display: flex;
+      }
+      .parc-toggle {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        transition: color 0.2s;
+      }
+      .parc-toggle:hover {
+        color: var(--dark);
+      }
+      .parc-toggle::after {
+        content: "▼";
+        font-size: 10px;
+        transition: transform 0.2s;
+      }
+      .parc-toggle.show::after {
+        transform: rotate(180deg);
       }
       .pd-lbl {
         font-size: 10px;
@@ -923,7 +955,7 @@
         <div class="ch">
           <span class="ct">Parcela mensal</span>
           <div class="tg-grp">
-            <!-- <span class="tg-lbl" id="segLbl">Com seguro</span> -->
+            <span class="tg-lbl" id="segLbl" style="display: none">Com seguro</span>
             <label class="sw">
               <input type="checkbox" id="segTog" checked />
               <span class="sw-track"></span>
@@ -933,6 +965,7 @@
         <div class="cb">
           <div class="parc-num" id="parcNum">—</div>
           <div class="parc-sub" id="parcSub">por mês</div>
+          <button class="parc-toggle" id="parcToggleBtn">Ver detalhes</button>
           <div class="parc-total" id="parcTotalBlock" style="display: none">
             <span class="pt-lbl" id="parcTotalLbl"
               >Total por mês (2 cotas)</span
@@ -1113,7 +1146,7 @@
       Ferramenta interna · Consórcio Valtra · Julho 2026 · Assembleia 16ª ·
       Vencimento 16/07/2026
       <br /><br />
-      <a href="#" id="semSegLink">exibir comparativo sem seguro</a>
+      <a href="#" id="semSegLink">A</a>
     </div>
 
     <script>
@@ -1227,11 +1260,11 @@
         document.getElementById("parcNum").textContent = brl(v.parc1);
         document.getElementById("parcSub").textContent = comSeg
           ? multi
-            ? "por cota · com seguro"
-            : "por mês · com seguro"
+            ? "por cota · c/ s"
+            : "por mês · c/ s"
           : multi
-            ? "por cota · sem seguro"
-            : "por mês · sem seguro";
+            ? "por cota · s/ s"
+            : "por mês · s/ s";
         const ptBlock = document.getElementById("parcTotalBlock");
         if (multi) {
           ptBlock.style.display = "flex";
@@ -1485,6 +1518,14 @@
       document.getElementById("btnClearCart").addEventListener("click", () => {
         cart = [];
         renderCart();
+      });
+
+      // ── PARC DETAILS TOGGLE ──
+      const parcToggleBtn = document.getElementById("parcToggleBtn");
+      const parcDet = document.querySelector(".parc-det");
+      parcToggleBtn.addEventListener("click", () => {
+        parcDet.classList.toggle("show");
+        parcToggleBtn.classList.toggle("show");
       });
 
       // ── BIND EVENTS ──
